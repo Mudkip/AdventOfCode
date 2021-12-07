@@ -16,11 +16,10 @@ function solve1(array $input): int {
 
 function solve2(array $input): int {
     $avg = intdiv(array_sum($input), count($input));
-    $sum = 0;
-    foreach($input as $pos) {
-        $n = abs($pos - $avg);
-        $sum += ($n * ($n+1) * 1/2);
-    }
+    $sum = array_reduce($input, function($carry, $num) use ($avg) {
+        $n = abs($num - $avg);
+        return $carry += ($n * ($n+1) * 1/2);
+    });
     return $sum;
 }
 
