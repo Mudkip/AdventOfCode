@@ -13,7 +13,7 @@ function common_count(string $w1, string $w2): int {
     return count(array_intersect($w1, $w2));
 }
 
-function sort_word(string $word) {
+function sort_word(string $word): string {
     $split = str_split($word);
     sort($split);
     return implode("", $split);
