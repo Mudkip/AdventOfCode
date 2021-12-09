@@ -17,6 +17,23 @@ function explore(array &$in, int $x, int $y): int {
     return explore($in, $x, $y - 1) + explore($in, $x, $y + 1) + explore($in, $x + 1, $y) + explore($in, $x - 1, $y) + 1;
 }
 
+function explore_bfs(array &$in, int $x, int $y): int {
+    $add_x = [1, -1, 0, 0];
+    $add_y = [0, 0, 1, -1];
+    $to_visit = [[$x,$y]];
+    $c = 0;
+    while(!empty($to_visit)) {
+        [$cx, $cy] = array_shift($to_visit);
+        if($cx < 0 || $cy < 0 || $cx >= count($in) || $cy >= count($in[$cx]) || $in[$cx][$cy] == 9) continue;
+        $in[$cx][$cy] = 9;
+        for($i = 0; $i < 4; $i++) {
+            array_push($to_visit, [$cx + $add_x[$i], $cy + $add_y[$i]]);
+        }
+        $c++;
+    }
+    return $c;
+}
+
 function solve(array $in, $part2 = false): int {
     $lowest = [];
     $basins = [];
