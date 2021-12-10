@@ -38,8 +38,7 @@ function solve(array $in, $part2 = false) {
         $pts2 = 0;
         while($pop = array_pop($open)) {
             $s = $opp[$pop];
-            $pts2 *= 5;
-            $pts2 += $scores[$s][1];
+            $pts2 = ($pts2 * 5) + $scores[$s][1];
         }
         $line_scores[] = $pts2;
     }
