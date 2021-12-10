@@ -37,7 +37,6 @@ function solve(array $in, $part2 = false) {
         if($skipline) continue;
         $pts2 = 0;
         while($pop = array_pop($open)) {
-            if($pop == null) break;
             $s = $opp[$pop];
             $pts2 *= 5;
             $pts2 += $scores[$s][1];
