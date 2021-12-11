@@ -7,7 +7,7 @@ foreach($in as &$line) {
 unset($line); // wtf php
 // see warning https://www.php.net/manual/en/control-structures.foreach.php
 
-function checkall(array $in) {
+function checkall(array $in): bool {
     foreach($in as $row) {
         foreach($row as $octo) {
             if($octo != 0) return false;
@@ -54,5 +54,5 @@ function solve(array $in, bool $part2 = false): int {
     else return 0;
 }
 
-echo solve($in) . PHP_EOL;
-echo solve($in, true) . PHP_EOL;
+echo "Part 1: " . solve($in) . PHP_EOL;
+echo "Part 2: " . solve($in, true) . PHP_EOL;
