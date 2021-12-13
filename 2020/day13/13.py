@@ -9,7 +9,7 @@ def earliest(timestamp, buses):
         timestamp += 1
 
 f = earliest(depart, buses)
-print("Day 1: %d" % ((f[0]-depart) * f[1]))
+print("Part 1: %d" % ((f[0]-depart) * f[1]))
 
 
 def earliest_chain(timestamp, buses):
@@ -30,4 +30,4 @@ def earliest_chain(timestamp, buses):
     return timestamp
             
 
-print("Day 2: %d" % earliest_chain(0, buses))
+print("Part 2: %d" % earliest_chain(0, buses))
