@@ -30,4 +30,4 @@ def earliest_chain(timestamp, buses):
     return timestamp
             
 
-print(earliest_chain(0, buses))
+print("Day 2: %d" % earliest_chain(0, buses))
