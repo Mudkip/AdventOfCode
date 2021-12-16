@@ -60,37 +60,23 @@ function parseOperator(int $v, int $t, string $bin): array {
         }
     }
 
-    $vsum = $v + array_sum(array_column($results, 'v'));
     $values = array_column($results, 'value');
-    switch($t) {
-        case 0:
-            $value = array_sum($values);
-            break;
-        case 1:
-            $value = array_product($values);
-            break;
-        case 2:
-            $value = min($values);
-            break;
-        case 3:
-            $value = max($values);
-            break;
-        case 5:
-            $value = $values[0] > $values[1] ? 1 : 0;
-            break;
-        case 6:
-            $value = $values[0] < $values[1] ? 1 : 0;
-            break;
-        case 7:
-            $value = $values[0] == $values[1] ? 1 : 0;
-            break;
-    }
+    $vsum = $v + array_sum(array_column($results, 'v'));
+    $result = match($t) {
+        0 => array_sum($values),
+        1 => array_product($values),
+        2 => min($values),
+        3 => max($values),
+        5 => $values[0] > $values[1] ? 1 : 0,
+        6 => $values[0] < $values[1] ? 1 : 0,
+        7 => $values[0] == $values[1] ? 1 : 0
+    };
 
     return [
         "t"   => $t,
         "v"   => $vsum,
         "len" => $offset_sub,
-        "value" => $value
+        "value" => $result
     ];
 }
 
