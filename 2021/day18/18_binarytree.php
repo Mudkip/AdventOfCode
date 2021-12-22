@@ -3,7 +3,7 @@ class Node {
     private string $val;
     private ?Node $left = null;
     private ?Node $right = null;
-    
+
     function __construct(string $value) { $this->val = $value;}
     function val(): string { return $this->val; }
     function left(): ?Node { return $this->left; }
@@ -13,7 +13,7 @@ class Node {
     function setRight(?Node $node): void { $this->right = $node; }
 }
 
-function parse(string $line) {
+function parse(string $line): array {
     $splitPos = 0;
     $openBr = 0;
     $split = str_split($line);
@@ -61,8 +61,8 @@ function breakdown(string $line): Node {
     return $root;
 }
 
-function expl(?Node $root, int $depth = 0, ?Node &$prevNode = null) {
-    if($root === null) return false;
+function expl(?Node $root, int $depth = 0, ?Node &$prevNode = null): array {
+    if($root === null) return [];
 
     if($depth >= 4 && $root->left() && $root->right()) {
         return [$root, $prevNode];
@@ -71,16 +71,16 @@ function expl(?Node $root, int $depth = 0, ?Node &$prevNode = null) {
     }
 
     $left = expl($root->left(), $depth + 1, $prevNode);
-    if(is_array($left)) return $left;
+    if(!empty($left)) return $left;
     
     $right = expl($root->right(), $depth + 1, $prevNode);
-    if(is_array($right)) return $right;
+    if(!empty($right)) return $right;
 
-    return false;
+    return [];
 }
 
-function findNextNumberNode(?Node $root, Node $explodeNode, bool &$foundExplodeNode = false) {
-    if($root === null) return false;
+function findNextNumberNode(?Node $root, Node $explodeNode, bool &$foundExplodeNode = false): ?Node {
+    if($root === null) return null;
 
     $left = findNextNumberNode($root->left(), $explodeNode, $foundExplodeNode);
     if($left) return $left;
@@ -89,14 +89,15 @@ function findNextNumberNode(?Node $root, Node $explodeNode, bool &$foundExplodeN
         return $root;
     } elseif($root === $explodeNode) {
         $foundExplodeNode = true;
-        return false;
+        return null;
     }
 
     $right = findNextNumberNode($root->right(), $explodeNode, $foundExplodeNode);
     if($right) return $right;
+    return null;
 }
 
-function split(?Node $root) {
+function split(?Node $root): bool {
     if($root === null) return false;
     $left = split($root->left());
     if($left) return $left;
@@ -113,9 +114,9 @@ function split(?Node $root) {
     return false;
 }
 
-function reduce(Node $root) {
+function reduce(Node $root): bool {
     $explode = expl($root);
-    if($explode !== false) {
+    if(!empty($explode)) {
         [$explodeNode, $leftNode] = $explode;
         $rightNode = findNextNumberNode($root, $explodeNode);
         if($leftNode !== null) {
@@ -135,13 +136,13 @@ function reduce(Node $root) {
     return false;
 }
 
-function magnitude(Node $root) {
+function magnitude(Node $root): int {
     if($root === null) return 0;
     if(is_numeric($root->val())) return $root->val();
     else return (3 * magnitude($root->left())) + (2 * magnitude($root->right()));
 }
 
-function solve(array $homework) {
+function solve(array $homework): int {
     while(count($homework) > 1) {
         $l1 = array_shift($homework);
         $l2 = array_shift($homework);
@@ -151,7 +152,7 @@ function solve(array $homework) {
     return magnitude($homework[0]);
 }
 
-function solve2(array $homework) {
+function solve2(array $homework): int {
     $max = 0;
     foreach($homework as $i => $one) {
         foreach($homework as $j => $two) {
