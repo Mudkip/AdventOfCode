@@ -3,8 +3,7 @@ class Node {
     private string $val;
     private ?Node $left = null;
     private ?Node $right = null;
-    private ?Node $parent = null;
-
+    
     function __construct(string $value) { $this->val = $value;}
     function val(): string { return $this->val; }
     function left(): ?Node { return $this->left; }
