@@ -6,46 +6,39 @@ foreach($in as $x => $line) {
     $map[$x] = str_split($line);
 }
 
-function emptyForward($map, $x, $y): bool {
+function emptyForward(array $map, int $x, int $y): bool {
     [$adjx, $adjy] = forwardCoords($map, $x, $y);
-    if($map[$adjx][$adjy] == ".") return true;
+    if($map[$adjx][$adjy] === ".") return true;
     return false;
 }
 
-function forwardCoords($map, $x, $y): array {
-    $xforward = $map[$x][$y] == ">" ? 0 : 1;
-    $yforward = $map[$x][$y] == ">" ? 1 : 0;
+function forwardCoords(array $map, int $x, int $y): array {
+    $xforward = $map[$x][$y] === ">" ? 0 : 1;
+    $yforward = $map[$x][$y] === ">" ? 1 : 0;
     $adjx = ($x + $xforward) % count($map);
     $adjy = ($y + $yforward) % count($map[$x]);
     return [$adjx, $adjy];
 }
 
-function move($map, $east) {
-    $moved = 0;
+function move(array $map, bool $east): array {
+    $moved = false;
     $new_map = $map;
     foreach($map as $x => $row) {
         foreach($row as $y => $val) {
-            $emptyForward = emptyForward($map, $x, $y);
-            if($emptyForward) {
-                [$fx, $fy] = forwardCoords($map, $x, $y);
-                if($east && $val == ">") {
-                    $new_map[$x][$y] = ".";
-                    $new_map[$fx][$fy] = ">";
-                    $moved++;
-                } elseif(!$east && $val == "v") {
-                    $new_map[$x][$y] = ".";
-                    $new_map[$fx][$fy] = "v";
-                    $moved++;
-                }    
-            }
+            if($val === ".") continue;
+            if(!emptyForward($map, $x, $y) || (($east && $val !== ">") || (!$east && $val !== "v"))) continue;
+            [$fx, $fy] = forwardCoords($map, $x, $y);
+            $new_map[$x][$y] = ".";
+            $new_map[$fx][$fy] = $val;
+            $moved = true;
         }
     }
     return [$new_map, $moved];
 }
 
-$moved = INF;
+$moved = true;
 $step = 0;
-while($moved !== 0) {
+while($moved) {
     [$map, $moved_e] = move($map, true);
     [$map, $moved_s] = move($map, false);
     $moved = $moved_e + $moved_s;
