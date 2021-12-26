@@ -77,8 +77,8 @@ class Amphipods {
 class Simulation {
     private array $rooms;
     private array $amphipods = [];
-    private $log = "";
     private int $cost = 0;
+    private ?array $last_move = null;
     # Can only move within hall bounds and into rooms, cannot stop in front of room exits.
     private array $legalMoves = ['A', 'B', 'C', 'D', 0, 1, 3, 5, 7, 9, 10];
 
@@ -92,14 +92,13 @@ class Simulation {
         }   
     } 
     
-    static function fromHash(string $hash, int $roomCount, string $log) {
+    static function fromHash(string $hash, int $roomCount) {
         $simulation = new Simulation([
             'A' => new Room('A', array_fill(0, $roomCount, null), 2),
             'B' => new Room('B', array_fill(0, $roomCount, null), 4),
             'C' => new Room('C', array_fill(0, $roomCount, null), 6),
             'D' => new Room('D', array_fill(0, $roomCount, null), 8)
         ]);
-        $simulation->log = $log;
 
         [$cost, $hash] = explode(":", $hash);
         $positions = explode("_", $hash);
@@ -187,6 +186,7 @@ class Simulation {
             }
         }
 
+        # Cannot walk past other amphipods in hall.
         $destIndex = is_numeric($destination) ? $destination : $this->rooms[$destination]->exit();
         $locIndex  = is_numeric($amphipods->location()) ? $amphipods->location() : $this->rooms[$amphipods->location()]->exit();
         $path = range($locIndex, $destIndex);
@@ -226,9 +226,10 @@ class Simulation {
     }
 
     function move(int $index, string $destination) {
-        $amphipods = $this->amphipods()[$index];
+        $amphipods = $this->amphipods($index);
         if($this->canMove($amphipods, $destination)) {
-            $this->cost += $this->calculateCost($amphipods, $destination);
+            $cost = $this->calculateCost($amphipods, $destination);
+            $this->cost += $cost;
             if(!is_numeric($amphipods->location())) {
                 $room = $this->rooms[$amphipods->location()];
                 foreach($room->occupants() as $k => $occupant) {
@@ -247,15 +248,46 @@ class Simulation {
                 }
                 $room->setOccupant($destOccupantIndex, $amphipods);
             }
-            $this->log .= $amphipods->type() . $amphipods->location() . ($occupantIndex ?? "") .  "->" . $destination . ($destOccupantIndex ?? "") . "|";
+            $this->last_move = [$index, $amphipods->location(), $cost];
             $amphipods->setLocation($destination);
             return true;
         }
         return false;
     }
 
-    function amphipods(): array {
-        return $this->amphipods;
+    function undoMove(): void {
+        if($this->last_move === null) return;
+        [$i, $to, $cost] = $this->last_move;
+        $amphipods = $this->amphipods($i);
+
+        $this->cost -= $cost;
+
+        if(!is_numeric($amphipods->location())) {
+            $room = $this->rooms[$amphipods->location()];
+            foreach($room->occupants() as $k => $occupant) {
+                if($amphipods === $occupant) {
+                    $occupantIndex = $k;
+                    break;
+                }
+            }
+            $room->setOccupant($occupantIndex, null);
+        }
+
+        if(!is_numeric($to)) {
+            $room = $this->rooms[$to];
+            foreach($room->occupants() as $k => $occupant) {
+                if($occupant !== null) break;
+                $destOccupantIndex = $k;
+            }
+            $room->setOccupant($destOccupantIndex, $amphipods);
+        }
+
+        $this->last_move = null;
+        $amphipods->setLocation($to);
+    }
+
+    function amphipods(int $i): Amphipods {
+        return $this->amphipods[$i];
     }
 
     function hash(): string {
@@ -268,55 +300,49 @@ class Simulation {
             else $locations[] = $amphipods->type() . $amphipods->location();
         }
         asort($locations);
-        return $this->cost . ":" . implode("_", $locations) . ':' . $this->log;
+        return $this->cost . ":" . implode("_", $locations);
     }
 }
 
-function simulate(array $states, int $roomCount, array &$cache, string $goal, array &$legalMoves = ['A', 'B', 'C', 'D', 0, 1, 3, 5, 7, 9, 10]) {
-    $newStates = [];
-    foreach($states as $hash => $obj) {
-        [$cost, $log] = $obj;
-        $initialHash = $cost . ":" . $hash;
-        for($i = 0; $i < ($roomCount * 4); $i++) {
-            foreach($legalMoves as $move) {
-                $fake = Simulation::fromHash($initialHash, $roomCount, $log);
-                $success = $fake->move($i, $move);
-                if($success) {
-                    $newHash = $fake->hash();
-                    [$newCost, $newHash, $newLog] = explode(":", $newHash);
-                    if(array_key_exists($newHash, $cache) && $cache[$newHash] <= $newCost) continue;
-                    else {
-                        if(array_key_exists($goal, $cache) && $newCost >= $cache[$goal]) continue;
-                        $cache[$newHash] = $newCost;
-                        $newStates[$newHash] = [$newCost, $newLog];
-                    }
-                }
-            } 
+function simulate(string $start, string $goal, int $room_count): int {
+    $states = [$start => 0];
+    $cache = [];
+    while(count($states) !== 0) {
+        foreach($states as $hash => $cost) {
+            unset($states[$hash]);
+            $fake = Simulation::fromHash($cost . ":" . $hash, $room_count);
+            for($i = 0; $i < ($room_count * 4); $i++) {
+                foreach(['A', 'B', 'C', 'D', 0, 1, 3, 5, 7, 9, 10] as $move) {
+                    if($fake->move($i, $move)) {
+                        [$ncost, $nhash] = explode(":", $fake->hash());
+                        $fake->undoMove();
+                        if(array_key_exists($nhash, $cache) && $cache[$nhash] <= $ncost) continue;
+                        if(array_key_exists($goal, $cache) && $cache[$goal] < $ncost) continue;                        
+                        $cache[$nhash] = $states[$nhash] = $ncost;
+                    }   
+                } 
+            }
         }
     }
-    return $newStates;
+    return $cache[$goal];
 }
 
+function solve(string $start): int {
+    $start_split = explode("_", $start);
+    $per_room = count($start_split) / 4;
+    $goal = "";
+    foreach(range("A", "D") as $letter) {
+        for($i = 0; $i < $per_room; $i++) {
+            $goal .= $letter . $letter . $i . ($letter !== "D" || $i !== ($per_room - 1) ? "_" : "");
+        }
+    }
+    $cache = [];
+    $states = [$start => 0];
+    return simulate($start, $goal, $per_room);
 
-# Ugly below but it is late now, I will cleanup later >_<
-$cache = [];
-$goalState = 'AA0_AA1_BB0_BB1_CC0_CC1_DD0_DD1';
-$states = simulate(['BA0_DA1_CB0_DB1_CC0_AC1_BD0_AD1'=>[0,""]], 2, $cache, $goalState);
-while(count($states) !== 0) {
-    echo "States left:" . count($states) . PHP_EOL;
-    $states = simulate($states, 2, $cache, $goalState);
+
 }
 
-echo "Part 1: " . $cache[$goalState] . PHP_EOL; 
+echo "Part 1: " . solve("BA0_DA1_CB0_DB1_CC0_AC1_BD0_AD1") . PHP_EOL; 
+echo "Part 2: " . solve("BA0_DA1_DA2_DA3_CB0_CB1_BB2_DB3_CC0_BC1_AC2_AC3_BD0_AD1_CD2_AD3") . PHP_EOL;
 
-
-$cache = [];
-$goalState = 'AA0_AA1_AA2_AA3_BB0_BB1_BB2_BB3_CC0_CC1_CC2_CC3_DD0_DD1_DD2_DD3';
-$states = simulate(['BA0_DA1_DA2_DA3_CB0_CB1_BB2_DB3_CC0_BC1_AC2_AC3_BD0_AD1_CD2_AD3'=>[0,""]], 4, $cache, $goalState);
-while(count($states) !== 0) {
-    echo "States left:" . count($states) . PHP_EOL;
-    $states = simulate($states, 4, $cache, $goalState);
-}
-
-
-echo "Part 2: " . $cache[$goalState] . PHP_EOL;
