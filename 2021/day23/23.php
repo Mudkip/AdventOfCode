@@ -307,6 +307,7 @@ class Simulation {
 function simulate(string $start, string $goal, int $room_count): int {
     $states = [$start => 0];
     $cache = [];
+
     while(count($states) !== 0) {
         foreach($states as $hash => $cost) {
             unset($states[$hash]);
@@ -316,8 +317,8 @@ function simulate(string $start, string $goal, int $room_count): int {
                     if($fake->move($i, $move)) {
                         [$ncost, $nhash] = explode(":", $fake->hash());
                         $fake->undoMove();
-                        if(array_key_exists($nhash, $cache) && $cache[$nhash] <= $ncost) continue;
-                        if(array_key_exists($goal, $cache) && $cache[$goal] < $ncost) continue;                        
+                        if(($cache[$nhash] ?? INF) <= $ncost) continue;        
+                        if(($cache[$goal] ?? INF) <= $ncost) continue;     
                         $cache[$nhash] = $states[$nhash] = $ncost;
                     }   
                 } 
