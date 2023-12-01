@@ -1,5 +1,3 @@
-import re
-
 num_map = {
     "one": "1",
     "two": "2",
