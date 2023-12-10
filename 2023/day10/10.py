@@ -101,7 +101,6 @@ def flood_fill(grid, start_pos):
                     if grid[new_y][new_x] == '.':
                         queue.append((new_y, new_x))
                         visited.add((new_y, new_x))
-                        grid[new_y][new_x] = 'O'
     return grid
 
 def count_leftovers(grid):
