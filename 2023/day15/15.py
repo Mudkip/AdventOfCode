@@ -9,38 +9,29 @@ def hash(string):
     return current
 
 def fill_boxes(instructions):
-    boxes = defaultdict(list)
+    boxes = defaultdict(dict)
     for instruction in instructions:
         is_add = "=" in instruction
         is_remove = "-" in instruction
         split_by = "=" if is_add else "-"
-        label, value = instruction.split(split_by)
-        box = hash(label)
+        label, focal_strength = instruction.split(split_by)
 
-        box_contents = {x[0]: x for x in boxes[box]}
-        if is_add:
-            if label not in box_contents:
-                boxes[box].append((label, value))
-            else:
-                curr_index = boxes[box].index(box_contents[label])
-                boxes[box][curr_index] = (label, value)
-        if is_remove:
-            if label in box_contents:
-                boxes[box].remove(box_contents[label])
-
+        label_hash = hash(label)
+        if is_add: boxes[label_hash][label] = focal_strength
+        if is_remove: boxes[label_hash].pop(label, None)
     return boxes
 
 def focusing_power(boxes):
     total = 0
     for box_id, box in boxes.items():
-        for lens_id, lens in enumerate(box):
-            total += (box_id + 1) * (lens_id + 1) * int(lens[1])
+        for lens_id, strength in enumerate(box.values(), 1):
+            total += (box_id + 1) * (lens_id) * int(strength)
         
     return total
 
 def solve():
     input = open("15.in").read().strip().split(",")
-    part_1 = sum([hash(part) for part in input])
+    part_1 = sum([hash(instruction) for instruction in input])
     part_2 = focusing_power(fill_boxes(input))
     return part_1, part_2
 
