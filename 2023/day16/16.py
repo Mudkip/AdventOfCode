@@ -2,6 +2,7 @@ import sys
 sys.setrecursionlimit(1_000_000_000)
 
 from enum import Enum
+from multiprocessing import Pool, cpu_count
 
 class Direction(Enum):
     UP = (-1, 0)
@@ -64,17 +65,21 @@ def solve(input):
     grid = parse_input(input)
     part_1 = count_energized(navigate(grid, (0, 0), Direction.RIGHT, set()))
 
-    max_energized = 0
+    args = []
     for x in range(len(grid[0])):
-        max_energized = max(max_energized, count_energized(navigate(grid, (0, x), Direction.DOWN, set())))
-        max_energized = max(max_energized, count_energized(navigate(grid, (len(grid) - 1, x), Direction.UP, set())))
+        args.append((grid, (0, x), Direction.DOWN, set()))
+        args.append((grid, (len(grid) - 1, x), Direction.UP, set()))
     for y in range(len(grid)):
-        max_energized = max(max_energized, count_energized(navigate(grid, (y, 0), Direction.RIGHT, set())))
-        max_energized = max(max_energized, count_energized(navigate(grid, (y, len(grid[0]) - 1), Direction.LEFT, set())))
-    part_2 = max_energized
+        args.append((grid, (y, 0), Direction.RIGHT, set()))
+        args.append((grid, (y, len(grid[0]) - 1), Direction.LEFT, set()))
+
+    with Pool(cpu_count()) as pool:
+        results = pool.starmap(navigate, args)
+    part_2 = max([count_energized(x) for x in results])
 
     return part_1, part_2
 
-part_1, part_2 = solve(open("16.in").read())
-print("Part 1:", part_1)
-print("Part 2:", part_2)
+if __name__ == '__main__':
+    part_1, part_2 = solve(open("16.in").read())
+    print("Part 1:", part_1)
+    print("Part 2:", part_2)
