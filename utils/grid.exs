@@ -82,4 +82,17 @@ defmodule GridUtils do
       {1, 0, :left} -> {0, -1}
     end
   end
+
+  def from_string(string) do
+    string
+    |> Enum.map(&String.trim/1)
+    |> Enum.map(&String.graphemes/1)
+  end
+
+  def all_to_integer(grid) do
+    grid
+    |> Enum.map(fn row ->
+      Enum.map(row, &String.to_integer/1)
+    end)
+  end
 end
