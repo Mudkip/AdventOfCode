@@ -115,8 +115,7 @@ end
 
 input =
   File.stream!("6.in")
-  |> Enum.map(&String.trim/1)
-  |> Enum.map(&String.graphemes/1)
+  |> GridUtils.from_string()
 
 part_1 = input |> Main.part_1()
 part_2 = input |> Main.part_2()

@@ -1,3 +1,5 @@
+Code.require_file("../../utils/grid.exs")
+
 defmodule Main do
   def solve(input) do
     height = length(input)
@@ -34,12 +36,10 @@ defmodule Main do
   end
 end
 
-input =
+[part_1, part_2] =
   File.stream!("8.in")
-  |> Enum.map(&String.trim/1)
-  |> Enum.map(&String.graphemes/1)
-
-[part_1, part_2] = Main.solve(input)
+  |> GridUtils.from_string()
+  |> Main.solve()
 
 IO.puts("Part 1: #{part_1}")
 IO.puts("Part 2: #{part_2}")
