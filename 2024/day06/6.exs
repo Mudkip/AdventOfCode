@@ -90,21 +90,11 @@ defmodule Main do
     |> Stream.take_while(&(&1 != nil))
     |> Enum.at(-1)
     |> elem(4)
-    |> MapSet.size()
+    |> (fn visited -> {MapSet.size(visited), visited} end).()
   end
 
-  def part_2(input) do
-    max_y = length(input) - 1
-    max_x = length(Enum.at(input, 0)) - 1
-
-    positions =
-      for y <- 0..max_y,
-          x <- 0..max_x,
-          Enum.at(Enum.at(input, y), x) == "." do
-        {x, y}
-      end
-
-    positions
+  def part_2(input, part1_visited) do
+    part1_visited
     |> Task.async_stream(fn {x, y} ->
       if test_position(input, x, y, {0, -1}), do: {x, y}, else: nil
     end)
@@ -117,8 +107,8 @@ input =
   File.stream!("6.in")
   |> GridUtils.from_string()
 
-part_1 = input |> Main.part_1()
-part_2 = input |> Main.part_2()
+{part_1, visited} = input |> Main.part_1()
+part_2 = input |> Main.part_2(visited)
 
 IO.puts("Part 1: #{part_1}")
 IO.puts("Part 2: #{part_2}")
