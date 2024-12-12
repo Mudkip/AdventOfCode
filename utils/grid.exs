@@ -95,4 +95,14 @@ defmodule GridUtils do
       Enum.map(row, &String.to_integer/1)
     end)
   end
+
+  def get_dimensions(grid) do
+    height = length(grid)
+    width = length(Enum.at(grid, 0))
+    {width, height}
+  end
+
+  def get_value(grid, {x, y}) do
+    grid |> Enum.at(y) |> Enum.at(x)
+  end
 end
