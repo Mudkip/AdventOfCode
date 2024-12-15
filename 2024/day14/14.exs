@@ -77,8 +77,9 @@ part_2 =
       end)
 
     cond do
-      #
-      WhizPalace.has_security_cluster?(next_positions, 2) -> {:halt, step}
+      # Massive assumption that a cluster of 3 indicates that a
+      # subset of robots are arranged in a christmas tree
+      WhizPalace.has_security_cluster?(next_positions, 3) -> {:halt, step}
       step >= 10000 -> {:halt, "No cluster found"}
       true -> {:cont, next_positions}
     end
