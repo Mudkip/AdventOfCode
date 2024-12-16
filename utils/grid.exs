@@ -62,6 +62,18 @@ defmodule GridUtils do
     end)
   end
 
+  def find_all_symbols(grid, symbol) do
+    grid
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {row, y} ->
+      row
+      |> Enum.with_index()
+      |> Enum.filter(fn {cell, _x} -> cell == symbol end)
+      |> Enum.map(fn {_cell, x} -> {x, y} end)
+    end)
+    |> MapSet.new()
+  end
+
   def rotate_direction(dx, dy, rotation) do
     case {dx, dy, rotation} do
       # up -> right
@@ -104,5 +116,20 @@ defmodule GridUtils do
 
   def get_value(grid, {x, y}) do
     grid |> Enum.at(y) |> Enum.at(x)
+  end
+
+  def set_value(grid, {x, y}, value) do
+    List.update_at(grid, y, fn row ->
+      List.update_at(row, x, fn _ -> value end)
+    end)
+  end
+
+  def visualize(grid) do
+    grid
+    |> Enum.map(&Enum.join/1)
+    |> Enum.join("\n")
+    |> IO.puts()
+
+    grid
   end
 end
