@@ -36,9 +36,6 @@ defmodule Amazon do
       "#" ->
         false
 
-      nil ->
-        false
-
       _ ->
         can_move?(grid, next_pos, dx, dy)
     end
@@ -71,9 +68,6 @@ defmodule Amazon do
         {:ok, grid}
 
       "#" ->
-        {:cannot_move, grid}
-
-      nil ->
         {:cannot_move, grid}
 
       symbol ->
