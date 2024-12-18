@@ -132,4 +132,50 @@ defmodule GridUtils do
 
     grid
   end
+
+  def create(width, height, symbol \\ ".") do
+    List.duplicate(
+      List.duplicate(symbol, width),
+      height
+    )
+  end
+
+  def shortest_path_bfs(grid, start, goal, walkable_values, movement_type \\ :four) do
+    bfs([{start, [start]}], grid, goal, walkable_values, MapSet.new([start]), movement_type)
+  end
+
+  defp bfs([], _grid, _goal, _walkable_values, _visited, _movement_type), do: nil
+
+  defp bfs([{current, path} | rest], grid, goal, walkable_values, visited, movement_type) do
+    if current == goal do
+      Enum.reverse(path)
+    else
+      neighbors = get_neighbors(current, grid, walkable_values, visited, movement_type)
+      new_visited = MapSet.union(visited, MapSet.new(neighbors))
+      new_paths = Enum.map(neighbors, fn neighbor -> {neighbor, [neighbor | path]} end)
+      bfs(rest ++ new_paths, grid, goal, walkable_values, new_visited, movement_type)
+    end
+  end
+
+  defp get_neighbors({x, y}, grid, walkable_values, visited, movement_type) do
+    directions =
+      case movement_type do
+        :four -> [{0, 1}, {1, 0}, {0, -1}, {-1, 0}]
+        :eight -> [{0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}]
+      end
+
+    Enum.filter(directions, fn {dx, dy} ->
+      new_pos = {x + dx, y + dy}
+
+      within_bounds?(new_pos, grid) and
+        not MapSet.member?(visited, new_pos) and
+        Enum.member?(walkable_values, get_value(grid, new_pos))
+    end)
+    |> Enum.map(fn {dx, dy} -> {x + dx, y + dy} end)
+  end
+
+  defp within_bounds?({x, y}, grid) do
+    {width, height} = get_dimensions(grid)
+    x >= 0 and x < width and y >= 0 and y < height
+  end
 end
