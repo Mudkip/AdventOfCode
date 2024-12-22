@@ -13,25 +13,13 @@ defmodule MonkeyBusiness do
 
   def iterate_secret(secret) do
     secret
-    |> then(fn s -> prune(mix(s, bsl(s, 6))) end)
-    |> then(fn a -> prune(mix(a, bsr(a, 5))) end)
-    |> then(fn b -> prune(mix(b, bsl(b, 11))) end)
-  end
-
-  defp mix(secret, to_mix) do
-    bxor(secret, to_mix)
-  end
-
-  defp prune(secret) do
-    rem(secret, 16_777_216)
-  end
-
-  def ones(number) do
-    rem(number, 10)
+    |> then(fn s -> bxor(s, s <<< 6) &&& 16_777_215 end)
+    |> then(fn a -> bxor(a, a >>> 5) &&& 16_777_215 end)
+    |> then(fn b -> bxor(b, b <<< 11) &&& 16_777_215 end)
   end
 
   def actual_prices(list) do
-    list |> Enum.map(&ones/1)
+    list |> Enum.map(&rem(&1, 10))
   end
 
   def pack_differences(a, b, c, d) do
@@ -60,7 +48,7 @@ secrets =
 prices =
   secrets
   |> Enum.map(&elem(&1, 1))
-  |> Enum.map(fn list -> Enum.map(list, &MonkeyBusiness.ones/1) end)
+  |> Enum.map(&MonkeyBusiness.actual_prices/1)
 
 sequences =
   prices
