@@ -2,13 +2,10 @@ defmodule MonkeyBusiness do
   import Bitwise
 
   def iterate_secret(secret, n) do
-    {secret, list} =
-      Enum.reduce(1..n, {secret, [secret]}, fn _i, {code, list} ->
-        s = iterate_secret(code)
-        {s, [s | list]}
-      end)
-
-    {secret, Enum.reverse(list)}
+    Enum.reduce(1..n, {secret, [secret]}, fn _i, {code, list} ->
+      s = iterate_secret(code)
+      {s, [s | list]}
+    end)
   end
 
   def iterate_secret(secret) do
@@ -33,7 +30,6 @@ defmodule MonkeyBusiness do
       key = pack_differences(b - a, c - b, d - c, e - d)
       {key, e}
     end)
-    |> Enum.reverse()
     |> Map.new()
   end
 end
