@@ -34,14 +34,16 @@ defmodule MonkeyBusiness do
     list |> Enum.map(&ones/1)
   end
 
+  def pack_differences(a, b, c, d) do
+    <<a::4, b::4, c::4, d::4>>
+  end
+
   def biggest_price_sequences(list) do
     list
     |> Stream.chunk_every(5, 1, :discard)
     |> Stream.map(fn [a, b, c, d, e] ->
-      {
-        {b - a, c - b, d - c, e - d},
-        e
-      }
+      key = pack_differences(b - a, c - b, d - c, e - d)
+      {key, e}
     end)
     |> Enum.reverse()
     |> Map.new()
@@ -52,18 +54,28 @@ secrets =
   File.read!("22.in")
   |> String.split()
   |> Enum.map(&String.to_integer/1)
-
-secrets = secrets |> Enum.map(&MonkeyBusiness.iterate_secret(&1, 2000))
+  |> Task.async_stream(fn secret -> MonkeyBusiness.iterate_secret(secret, 2000) end)
+  |> Enum.map(fn {:ok, result} -> result end)
 
 prices =
   secrets
   |> Enum.map(&elem(&1, 1))
   |> Enum.map(fn list -> Enum.map(list, &MonkeyBusiness.ones/1) end)
 
-sequences = prices |> Enum.map(&MonkeyBusiness.biggest_price_sequences/1)
+sequences =
+  prices
+  |> Task.async_stream(&MonkeyBusiness.biggest_price_sequences/1)
+  |> Enum.map(fn {:ok, result} -> result end)
 
 sequence_profits =
   sequences
+  |> Enum.chunk_every(max(1, div(length(sequences), System.schedulers_online())))
+  |> Task.async_stream(fn chunk ->
+    Enum.reduce(chunk, %{}, fn map, acc ->
+      Map.merge(acc, map, fn _k, v1, v2 -> v1 + v2 end)
+    end)
+  end)
+  |> Enum.map(fn {:ok, result} -> result end)
   |> Enum.reduce(%{}, fn map, acc ->
     Map.merge(acc, map, fn _k, v1, v2 -> v1 + v2 end)
   end)
