@@ -10,4 +10,10 @@ defmodule ListUtils do
         rest <- do_permutations(chars, length - 1),
         do: [char | rest]
   end
+
+  def combinations(list1, list2) do
+    for x <- list1,
+        y <- list2,
+        do: {x, y}
+  end
 end
