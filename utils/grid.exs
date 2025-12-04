@@ -124,6 +124,13 @@ defmodule GridUtils do
     end)
   end
 
+  def each_cell(grid) do
+    for {row, y} <- Enum.with_index(grid),
+        {cell, x} <- Enum.with_index(row) do
+      {{x, y}, cell}
+    end
+  end
+
   def visualize(grid) do
     grid
     |> Enum.map(&Enum.join/1)
@@ -157,7 +164,7 @@ defmodule GridUtils do
     end
   end
 
-  defp get_neighbors({x, y}, grid, walkable_values, visited, movement_type) do
+  def get_neighbors({x, y}, grid, walkable_values, visited, movement_type) do
     directions =
       case movement_type do
         :four -> [{0, 1}, {1, 0}, {0, -1}, {-1, 0}]
