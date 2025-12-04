@@ -29,5 +29,5 @@ end
   |> GridUtils.from_string()
   |> PaperFactoryMapper.map()
 
-IO.puts("Part 1: #{first}")
-IO.puts("Part 2: #{total}")
+IO.puts("Part 1: #{part_1}")
+IO.puts("Part 2: #{part_2}")
